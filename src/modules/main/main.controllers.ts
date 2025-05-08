@@ -1,7 +1,11 @@
 import type { FastifyReply, FastifyRequest } from 'fastify'
-import { queryPostSchema } from '../../schema/post'
-import type { GetPublishedPostsResponseType } from '../../types/posts/post'
-import { getAllPublishedPosts } from '../posts/post.services'
+import { queryPostSchema, slugPostSchema } from '../../schema/post'
+import type {
+  GetPublishedPostResponseType,
+  GetPublishedPostsResponseType,
+} from '../../types/posts/post'
+import { getPostBySlug } from '../posts/post.services'
+import { getAllPublishedPosts } from './main.services'
 
 export const ping = async (request: FastifyRequest, reply: FastifyReply) => {
   const { ip } = request
@@ -49,4 +53,38 @@ export const getPublishedPosts = async (
   }
 
   return reply.status(200).send(publishedPosts)
+}
+
+export const getPublishedPost = async (
+  request: FastifyRequest,
+  reply: FastifyReply
+) => {
+  const slugQuery = slugPostSchema.safeParse(request.params)
+  if (!slugQuery.success) {
+    return reply.status(400).send({
+      error: slugQuery.error.flatten().fieldErrors,
+      message: slugQuery.error.message,
+    })
+  }
+
+  const { slug } = slugQuery.data
+  const post = await getPostBySlug(slug)
+  const isPublishedPost = post && post.postStatus === 'PUBLISHED'
+
+  if (!post || !isPublishedPost) {
+    return reply.status(404).send({ error: 'Post not found' })
+  }
+
+  const postResponse: GetPublishedPostResponseType = {
+    id: post.postId,
+    title: post.title,
+    slug: post.slug,
+    body: post.body,
+    tags: post.tags,
+    authorName: post.author.name,
+    updatedAt: post.updatedAt,
+    createdAt: post.createdAt,
+  }
+
+  return reply.status(200).send(postResponse)
 }
