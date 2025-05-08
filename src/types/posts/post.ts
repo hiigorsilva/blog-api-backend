@@ -17,4 +17,8 @@ export type GetPublishedPostsResponseType = z.infer<
   typeof post.getPublishedPostsSchema
 >
 
+export type GetPublishedPostResponseType = z.infer<
+  typeof post.getPublishedPostSchema
+>
+
 export type AddPostResponseType = z.infer<typeof post.addPostResponseSchema>
