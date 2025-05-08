@@ -8,6 +8,7 @@ import { pingRoute } from '../modules/main/main.routes'
 import {
   addPostRoute,
   editPostRoute,
+  getPostRoute,
   getPostsRoute,
   removePostRoute,
 } from '../modules/posts/post.routes'
@@ -23,10 +24,11 @@ const authRoutes = async (app: FastifyInstance) => {
 }
 
 const adminRoutes = async (app: FastifyInstance) => {
+  app.register(getPostRoute)
+  app.register(getPostsRoute)
   app.register(addPostRoute)
   app.register(editPostRoute)
   app.register(removePostRoute)
-  app.register(getPostsRoute)
 }
 
 export const registerRoutes = async (app: FastifyInstance) => {
