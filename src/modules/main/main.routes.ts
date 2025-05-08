@@ -13,3 +13,11 @@ export const getPublishedPostsRoute: FastifyPluginAsyncZod = async app => {
     mainController.getPublishedPosts
   )
 }
+
+export const getPublishedPostRoute: FastifyPluginAsyncZod = async app => {
+  app.get(
+    '/posts/:slug',
+    mainSchema.getPublishedPost,
+    mainController.getPublishedPost
+  )
+}
