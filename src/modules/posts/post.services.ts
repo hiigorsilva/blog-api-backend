@@ -3,6 +3,47 @@ import { db } from '../../libs/prisma'
 import { createSlug } from '../../libs/slug'
 import type { CreatePostProps } from '../../types/posts/post'
 
+export const getPostBySlug = async (slug: string) => {
+  const post = await db.post.findUnique({
+    where: { slug: slug },
+    include: {
+      author: {
+        select: {
+          name: true,
+        },
+      },
+    },
+  })
+  return post
+}
+
+export const getAllPosts = async (userId: string, page: number) => {
+  const PER_PAGE_ITEMS = 5
+
+  const posts = await db.post.findMany({
+    where: { authorId: userId },
+    include: {
+      author: {
+        select: {
+          name: true,
+        },
+      },
+    },
+    take: PER_PAGE_ITEMS,
+    skip: (page - 1) * PER_PAGE_ITEMS,
+    orderBy: { createdAt: 'desc' },
+  })
+
+  return posts
+}
+
+export const getAllPostsCount = async (userId: string) => {
+  const totalPosts = await db.post.count({
+    where: { authorId: userId },
+  })
+  return totalPosts
+}
+
 export const createPostSlug = async (title: string) => {
   const slugBase = await createSlug(title)
   if (!slugBase) return
@@ -47,28 +88,6 @@ export const createPost = async (data: CreatePostProps) => {
   return post
 }
 
-export const addPostCount = async (userId: string) => {
-  const totalPosts = await db.user.update({
-    where: { id: userId },
-    data: { totalPosts: { increment: 1 } },
-    select: {
-      totalPosts: true,
-    },
-  })
-  return totalPosts
-}
-
-export const removePostCount = async (userId: string) => {
-  const totalPosts = await db.user.update({
-    where: { id: userId },
-    data: { totalPosts: { decrement: 1 } },
-    select: {
-      totalPosts: true,
-    },
-  })
-  return totalPosts
-}
-
 export const updatePost = async (
   slug: string,
   data: Prisma.PostUpdateInput
@@ -78,20 +97,6 @@ export const updatePost = async (
     data: data,
   })
 
-  return post
-}
-
-export const getPostBySlug = async (slug: string) => {
-  const post = await db.post.findUnique({
-    where: { slug: slug },
-    include: {
-      author: {
-        select: {
-          name: true,
-        },
-      },
-    },
-  })
   return post
 }
 
@@ -115,29 +120,24 @@ export const removePostBySlug = async (slug: string) => {
   return post
 }
 
-export const getAllPosts = async (userId: string, page: number) => {
-  const PER_PAGE_ITEMS = 5
-
-  const posts = await db.post.findMany({
-    where: { authorId: userId },
-    include: {
-      author: {
-        select: {
-          name: true,
-        },
-      },
+export const addPostCount = async (userId: string) => {
+  const totalPosts = await db.user.update({
+    where: { id: userId },
+    data: { totalPosts: { increment: 1 } },
+    select: {
+      totalPosts: true,
     },
-    take: PER_PAGE_ITEMS,
-    skip: (page - 1) * PER_PAGE_ITEMS,
-    orderBy: { createdAt: 'desc' },
   })
-
-  return posts
+  return totalPosts
 }
 
-export const getAllPostsCount = async (userId: string) => {
-  const totalPosts = await db.post.count({
-    where: { authorId: userId },
+export const removePostCount = async (userId: string) => {
+  const totalPosts = await db.user.update({
+    where: { id: userId },
+    data: { totalPosts: { decrement: 1 } },
+    select: {
+      totalPosts: true,
+    },
   })
   return totalPosts
 }
