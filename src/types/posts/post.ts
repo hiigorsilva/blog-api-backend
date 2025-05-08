@@ -9,10 +9,8 @@ export type CreatePostProps = {
   tags: string[]
 }
 
-export type AddPostBodyType = z.infer<typeof post.addPostBodySchema>
-
-export type AddPostResponseType = z.infer<typeof post.addPostResponseSchema>
-
-export type SlugPostType = z.infer<typeof post.slugPostSchema>
+export type GetPostType = z.infer<typeof post.getPostSchema>
 
 export type GetAllPostsResponseType = z.infer<typeof post.getAllPostsSchema>
+
+export type AddPostResponseType = z.infer<typeof post.addPostResponseSchema>
