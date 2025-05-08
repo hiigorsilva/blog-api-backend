@@ -8,6 +8,7 @@ import {
 import type {
   AddPostResponseType,
   GetAllPostsResponseType,
+  GetPostType,
 } from '../../types/posts/post'
 import { getUserById } from '../auth/auth.services'
 import {
@@ -19,6 +20,91 @@ import {
   removePostBySlug,
   updatePost,
 } from './post.services'
+
+export const getPost = async (request: FastifyRequest, reply: FastifyReply) => {
+  const { user } = request
+  if (!user) {
+    return reply.status(401).send({ error: 'Unauthorized user' })
+  }
+
+  const slugQuery = slugPostSchema.safeParse(request.params)
+  if (!slugQuery.success) {
+    return reply.status(400).send({
+      error: slugQuery.error.flatten().fieldErrors,
+      message: slugQuery.error.message,
+    })
+  }
+
+  const { slug } = slugQuery.data
+
+  const post = await getPostBySlug(slug)
+  if (!post) {
+    return reply.status(404).send({ error: 'Post not found' })
+  }
+
+  const postResponse: GetPostType = {
+    post: {
+      id: post.postId,
+      title: post.title,
+      slug: post.slug,
+      body: post.body,
+      tags: post.tags,
+      authorName: post.author.name,
+      updatedAt: post.updatedAt,
+      createdAt: post.createdAt,
+    },
+  }
+
+  return reply.status(200).send(postResponse)
+}
+
+export const getPosts = async (
+  request: FastifyRequest,
+  reply: FastifyReply
+) => {
+  const { user } = request
+  if (!user) {
+    return reply.status(401).send({ error: 'Unauthorized user' })
+  }
+
+  const pageQuery = queryPostSchema.safeParse(request.query)
+  if (!pageQuery.success) {
+    return reply.status(400).send({
+      error: pageQuery.error.flatten().fieldErrors,
+      message: pageQuery.error.message,
+    })
+  }
+
+  if (pageQuery.data.page <= 0) {
+    return reply.status(404).send({ error: 'Page not found' })
+  }
+
+  const { page } = pageQuery.data
+
+  const posts = await getAllPosts(user.id, page)
+  if (!posts) {
+    return reply.status(500).send({ error: 'Failed to get posts' })
+  }
+
+  const totalPosts = await getAllPostsCount(user.id)
+
+  const postsResponse: GetAllPostsResponseType = {
+    posts: posts.map(post => ({
+      id: post.postId,
+      title: post.title,
+      slug: post.slug,
+      tags: post.tags,
+      authorName: post.author.name,
+      status: post.postStatus,
+      updatedAt: post.updatedAt,
+      createdAt: post.createdAt,
+    })),
+    page: page,
+    totalPosts: totalPosts,
+  }
+
+  return reply.status(200).send(postsResponse)
+}
 
 export const addPost = async (request: FastifyRequest, reply: FastifyReply) => {
   const { user } = request
@@ -176,52 +262,4 @@ export const removePost = async (
   }
 
   return reply.status(200).send(post)
-}
-
-export const getPosts = async (
-  request: FastifyRequest,
-  reply: FastifyReply
-) => {
-  const { user } = request
-  if (!user) {
-    return reply.status(401).send({ error: 'Unauthorized user' })
-  }
-
-  const pageQuery = queryPostSchema.safeParse(request.query)
-  if (!pageQuery.success) {
-    return reply.status(400).send({
-      error: pageQuery.error.flatten().fieldErrors,
-      message: pageQuery.error.message,
-    })
-  }
-
-  if (pageQuery.data.page <= 0) {
-    return reply.status(404).send({ error: 'Page not found' })
-  }
-
-  const { page } = pageQuery.data
-
-  const posts = await getAllPosts(user.id, page)
-  if (!posts) {
-    return reply.status(500).send({ error: 'Failed to get posts' })
-  }
-
-  const totalPosts = await getAllPostsCount(user.id)
-
-  const postsResponse: GetAllPostsResponseType = {
-    posts: posts.map(post => ({
-      id: post.postId,
-      title: post.title,
-      slug: post.slug,
-      tags: post.tags,
-      authorName: post.author.name,
-      status: post.postStatus,
-      updatedAt: post.updatedAt,
-      createdAt: post.createdAt,
-    })),
-    page: page,
-    totalPosts: totalPosts,
-  }
-
-  return reply.status(200).send(postsResponse)
 }
