@@ -4,7 +4,12 @@ import {
   signupRoute,
   validateRoute,
 } from '../modules/auth/auth.routes'
-import { pingRoute } from '../modules/main/main.routes'
+import {
+  getPublishedPostRoute,
+  getPublishedPostsRoute,
+  getRelatedPostsRoute,
+  pingRoute,
+} from '../modules/main/main.routes'
 import {
   addPostRoute,
   editPostRoute,
@@ -15,6 +20,9 @@ import {
 
 const mainRoutes = async (app: FastifyInstance) => {
   app.register(pingRoute)
+  app.register(getPublishedPostsRoute)
+  app.register(getPublishedPostRoute)
+  app.register(getRelatedPostsRoute)
 }
 
 const authRoutes = async (app: FastifyInstance) => {
