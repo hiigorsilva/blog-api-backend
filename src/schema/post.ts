@@ -78,6 +78,20 @@ export const getPublishedPostSchema = z.object({
   updatedAt: z.date(),
 })
 
+export const getRelatedPostsSchema = z.object({
+  posts: z.array(
+    z.object({
+      id: z.string(),
+      title: z.string(),
+      slug: z.string(),
+      tags: z.array(z.string()),
+      authorName: z.string(),
+      updatedAt: z.date(),
+      createdAt: z.date(),
+    })
+  ),
+})
+
 // ADD POST BODY SCHEMA
 export const addPostBodySchema = z.object({
   title: z.string().min(2),
