@@ -3,6 +3,7 @@ import z from 'zod'
 import {
   getPublishedPostSchema,
   getPublishedPostsSchema,
+  getRelatedPostsSchema,
   queryPostSchema,
   slugPostSchema,
 } from '../../schema/post'
@@ -46,6 +47,23 @@ export const getPublishedPost: RouteShorthandOptions = {
     params: slugPostSchema,
     response: {
       200: getPublishedPostSchema,
+      400: z.object({
+        error: z.string(),
+        message: z.string(),
+      }),
+      500: z.object({ error: z.string() }),
+    },
+  },
+}
+
+export const getRelatedPosts: RouteShorthandOptions = {
+  schema: {
+    summary: 'Get related posts',
+    consumes: ['application/json'],
+    tags: ['Posts'],
+    params: slugPostSchema,
+    response: {
+      200: getRelatedPostsSchema,
       400: z.object({
         error: z.string(),
         message: z.string(),

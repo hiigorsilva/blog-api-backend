@@ -21,3 +21,11 @@ export const getPublishedPostRoute: FastifyPluginAsyncZod = async app => {
     mainController.getPublishedPost
   )
 }
+
+export const getRelatedPostsRoute: FastifyPluginAsyncZod = async app => {
+  app.get(
+    '/posts/:slug/related',
+    mainSchema.getRelatedPosts,
+    mainController.getRelatedPosts
+  )
+}

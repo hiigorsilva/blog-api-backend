@@ -3,9 +3,10 @@ import { queryPostSchema, slugPostSchema } from '../../schema/post'
 import type {
   GetPublishedPostResponseType,
   GetPublishedPostsResponseType,
+  GetRelatedPostsResponseType,
 } from '../../types/posts/post'
 import { getPostBySlug } from '../posts/post.services'
-import { getAllPublishedPosts } from './main.services'
+import { getAllPublishedPosts, getPostsWithSimilarTags } from './main.services'
 
 export const ping = async (request: FastifyRequest, reply: FastifyReply) => {
   const { ip } = request
@@ -87,4 +88,38 @@ export const getPublishedPost = async (
   }
 
   return reply.status(200).send(postResponse)
+}
+
+export const getRelatedPosts = async (
+  request: FastifyRequest,
+  reply: FastifyReply
+) => {
+  const slugQuery = slugPostSchema.safeParse(request.params)
+  if (!slugQuery.success) {
+    return reply.status(400).send({
+      error: slugQuery.error.flatten().fieldErrors,
+      message: slugQuery.error.message,
+    })
+  }
+
+  const { slug } = slugQuery.data
+
+  const posts = await getPostsWithSimilarTags(slug)
+  if (!posts.success || !posts.data) {
+    return reply.status(500).send({ error: posts.error })
+  }
+
+  const relatedPostsResponse: GetRelatedPostsResponseType = {
+    posts: posts.data.map(post => ({
+      id: post.postId,
+      title: post.title,
+      slug: post.slug,
+      tags: post.tags,
+      authorName: post.author.name,
+      updatedAt: post.updatedAt,
+      createdAt: post.createdAt,
+    })),
+  }
+
+  return reply.status(200).send(relatedPostsResponse)
 }
